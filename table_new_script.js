@@ -2,11 +2,7 @@
 
 function delete_row(no)
 {
- /*document.getElementById("row"+no+"").outerHTML="";*/
-	 
-	 document.getElementById("data_table").deleteRow("row"+no+"");
-	  
-
+document.getElementById("row"+no+"").outerHTML="";
 }
 
 function add_row()
