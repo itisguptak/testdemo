@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Hello jQuery</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script src="table_new_script.js"></script>
+    </head>
+
+    <body>
+    
+   <script>
+   $(document).ready(function(){
+	    $("form").submit(function(event){
+	    	
+	    	event.preventDefault();
+            invokeREST();
+	    	
+	});
+	});
+
+
+   
+function invokeREST() {
+	var ipvalue;
+    var portvalue;
+    var labelvalue;
+    var iplabel;
+    var output = document.getElementById('output');
+    var table = document.getElementById("data_table");
+    var column_count = table.rows[0].cells.length;
+    var rowcount = table.rows.length;
+    var listofMap = [];
+    //alert(rowcount);
+    for(var index = 0; index < rowcount;index++){
+        	
+			var allIps = document.getElementsByName("ip");
+			var allPorts = document.getElementsByName("port");
+			var allLabels = document.getElementsByName("label");
+			
+			for(var index=0;index<allIps.length;index++)
+				{
+				ipvalue=allIps[index].value;
+				portvalue=allPorts[index].value;
+				labelvalue=allLabels[index].value;
+				var dict = new Object();
+                dict["ip"] = ipvalue;
+                dict["port"] = portvalue;
+                dict["label"] = labelvalue;
+                listofMap.push(dict);  
+			
+			//alert(ipvalue+portvalue+labelvalue);
+			
+				}
+    }
+      
+    //output.innerHTML =JSON.stringify(listofMap);   
+    //alert(JSON.stringify(listofMap));
+    $.ajax({ 
+        type: "POST",
+        contentType: "application/json",
+        url: "http://localhost:8090/appdev",  
+        data: JSON.stringify(listofMap),
+        dataType: "json",
+        async: false, 
+        success: function(data) {
+            console.log(data);
+            $("#output").html("<pre>"+JSON.stringify(data, null, 4)+"</pre>");
+        },
+        error: function(e) {
+            console.log("ERROR: ", e);
+		}
+    });
+}
+
+function Upload() {
+    var fileUpload = document.getElementById("fileUpload");
+    
+    var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+    if (regex.test(fileUpload.value.toLowerCase())) {
+        if (typeof (FileReader) != "undefined") {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var table = document.getElementById("data_table");
+                var rows = e.target.result.split("\n");
+                alert(rows.length);
+                for (var i = 0; i < rows.length; i++) {
+                    var row = table.insertRow(-1);
+                    var cells = rows[i].split(",");
+                    for (var j = 0; j < cells.length; j++) {
+                       var cell = row.insertCell(-1);
+                       cell.innerHTML = cells[j];
+                    }
+                }
+                var dvCSV = document.getElementById("dvCSV");
+                dvCSV.innerHTML = "";
+                dvCSV.appendChild(table);
+            }
+            reader.readAsText(fileUpload.files[0]);
+        } else {
+            alert("This browser does not support HTML5.");
+        }
+    } else {
+        alert("Please upload a valid CSV file.");
+    }
+}
+
+
+
+
+
+$(function () {
+    $("#upload").bind("click", function () {
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+        if (regex.test($("#fileUpload").val().toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+                reader.onload = function (e) {var table=document.getElementById("data_table");
+           	 var rows = e.target.result.split("\n");
+           	
+        	 alert(rows.length);
+       	  for (var i = 1; i < rows.length; i++) {
+       		  
+       		 var cells = rows[i].split(",");
+       		
+       	
+          
+       	  if(cells)
+     	 {
+                if(cells[0])
+                	{
+                 table.insertRow(i).outerHTML="<tr id='row"+i+"'>" +
+            		"<td id='ip_col"+i+"'>" +
+            				"<label id='IP Address'>IP Address : </label> " +
+            				"<input type='text' disabled='disabled' id='new_ip"+i+"' name='ip' value='"+cells[0]+"' ></td>" +
+            		"<td id='port_col"+i+"'>" +
+            				"<label id='Port'>Port : </label> " +
+            				"<input type='text' id='new_port"+i+"' name='port' disabled='disabled' value='"+cells[1]+"' ></td>" +
+            		"<td id='label_col"+i+"'>" +
+            				"<label id='Label'>Label : </label> " +
+            				"<input type='text' id='new_label"+i+"' name='label' disabled='disabled' value='"+cells[2]+"'  ></td>" +
+            		"<td> <input type='button' value='-' onclick='delete_row("+i+")'></td>"+
+            		"</tr>";
+                 
+                	}
+       	 
+     	 }
+       	
+       	
+       	  }
+                }
+                reader.readAsText($("#fileUpload")[0].files[0]);
+            } else {
+                alert("This browser does not support HTML5.");
+            }
+        } else {
+            alert("Please upload a valid CSV file.");
+        }
+    });
+});
+</script>
+
+
+
+
+<table id="data_table" border=1 align="center">
+<tr>
+<td> <label id="IP Address">IP Address : </label> <input type="text" name="ip" id="new_ip0" placeholder="Destination IP"></td>
+<td><label id="Port">Port : </label> <input type="text"  name="port"   id="new_port0"  placeholder="Enetr Port no here"></td>
+<td><label id="Label">Label : </label> <input type="text" name="label" id="new_label0" placeholder="Enter Label here"></td>
+
+</tr> 
+
+</table>
+	
+
+  
+    <form action="#">
+
+    <p align="center">
+    <input type="button"  onclick="add_row();" value="Add row">
+     <input type="file" id="fileUpload" />
+<input type="button" id="upload" value="Upload" /><br>
+    <input type="button" onClick="location.href=''" value="Clear Data">
+    <input type="submit" value="Submit">
+   
+    </p>
+   </form>
+    <div id="output" align="center"> 
+	</div>
+	
+ 	
+ 
+</body>  
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
